@@ -1,0 +1,25 @@
+[package]
+name = "mati-test-rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+path = "src/main.rs"
+name = "mati-test-rust"
+
+[dependencies]
+actix-web = "4.10.2"
+tokio = { version = "1.44.2", features = ["macros", "rt-multi-thread"] }
+serde = { version = "1.0.219", features = ["derive"] }
+sqlx = { version = "0.8.5", default-features = false, features = ["runtime-tokio-rustls", "macros", "postgres", "uuid", "chrono", "migrate"] }
+config = "0.15.11"
+dotenvy = "0.15.7"
+env_logger = "0.11.8"
+
+[dev-dependencies]
+reqwest = "0.12.15"
+rstest = "0.25.0"
+testcontainers-modules = { version = "0.11.6", features = ["postgres"] }
