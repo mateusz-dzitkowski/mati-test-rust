@@ -1,12 +1,12 @@
-use std::net::TcpListener;
-use secrecy::ExposeSecret;
-use sqlx::PgPool;
-use sqlx::postgres::PgPoolOptions;
 use mati_test_rust::{
     log::{get_subscriber, init_subscriber},
     settings::{get_settings, Settings},
     startup::run,
 };
+use secrecy::ExposeSecret;
+use sqlx::postgres::PgPoolOptions;
+use sqlx::PgPool;
+use std::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {

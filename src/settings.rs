@@ -1,5 +1,5 @@
-use serde::Deserialize;
 use secrecy::SecretString;
+use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Settings {
@@ -11,8 +11,6 @@ pub struct Settings {
 pub fn get_settings() -> Result<Settings, config::ConfigError> {
     let env = config::Environment::default();
 
-    let conf = config::Config::builder()
-        .add_source(env)
-        .build()?;
+    let conf = config::Config::builder().add_source(env).build()?;
     conf.try_deserialize()
 }
