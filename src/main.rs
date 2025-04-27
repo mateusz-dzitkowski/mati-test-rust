@@ -1,21 +1,36 @@
 use std::net::TcpListener;
+use secrecy::ExposeSecret;
+use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
-use mati_test_rust::config::get_config;
-use mati_test_rust::startup::run;
+use mati_test_rust::{
+    log::{get_subscriber, init_subscriber},
+    settings::{get_settings, Settings},
+    startup::run,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     dotenvy::dotenv().ok();
-    env_logger::init();
-    let config = get_config().unwrap();
+    let settings = get_settings().unwrap();
 
-    let listener = TcpListener::bind(format!("127.0.0.1:{}", config.app_port))?;
-    let pool = PgPoolOptions::new()
-        .max_connections(config.pool_max_connections)
-        .connect(&config.database_url)
-        .await
-        .unwrap();
-    
+    let subscriber = get_subscriber("mati-test-rust", "info");
+    init_subscriber(subscriber);
+
+    let listener = get_listener(&settings).await;
+    let pool = get_pool(&settings).await;
+
     run(listener, pool)?.await?;
     Ok(())
+}
+
+async fn get_listener(settings: &Settings) -> TcpListener {
+    TcpListener::bind(format!("127.0.0.1:{}", settings.app_port)).unwrap()
+}
+
+async fn get_pool(settings: &Settings) -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(settings.pool_max_connections)
+        .connect(settings.database_url.expose_secret())
+        .await
+        .unwrap()
 }

@@ -1,21 +1,29 @@
 use std::net::TcpListener;
+use once_cell::sync::Lazy;
 use reqwest::{Client, StatusCode};
 use rstest::{fixture, rstest};
 use sqlx::{migrate, PgPool, postgres::PgPoolOptions};
 use mati_test_rust::startup::run;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use testcontainers_modules::testcontainers::{ContainerAsync, ImageExt};
+use mati_test_rust::log::{get_subscriber, init_subscriber};
+
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let subscriber = get_subscriber("test", "debug");
+    init_subscriber(subscriber);
+});
 
 struct TestApp {
     pub client: Client,
     pub addr: String,
     pub db_pool: PgPool,
-    pub db_container: ContainerAsync<Postgres>,
+    pub _db_container: ContainerAsync<Postgres>,
 }
 
 
 #[fixture]
 async fn test_app() -> TestApp {
+    Lazy::force(&TRACING);
     let db_container = Postgres::default().with_tag("latest").start().await.unwrap();
     let host = db_container.get_host().await.unwrap().to_string();
     let port = db_container.get_host_port_ipv4(5432).await.unwrap();
@@ -33,7 +41,7 @@ async fn test_app() -> TestApp {
     let addr = format!("http://127.0.0.1:{}", port);
     let client = Client::new();
 
-    TestApp { client, addr, db_pool, db_container }
+    TestApp { client, addr, db_pool, _db_container: db_container }
 }
 
 #[tokio::test]
